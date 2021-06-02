@@ -1,6 +1,6 @@
 # kafka-connect-demo
 
-Edit zookeepr volumn to local machine
+Edit docker-compose.yml zookeeper volumn to local machine
 ```
     volumes:
       - /Users/hngo/Documents/dev/volumes/zookeeper/log/version-2/:/var/lib/zookeeper/log/version-2
