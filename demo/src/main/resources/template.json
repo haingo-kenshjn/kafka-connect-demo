@@ -1,0 +1,19 @@
+{
+  "messagingMode": "PRODUCTION",
+  "envelopeSchema": "com.gm.cei.messaging.types.v1.Command",
+  "command": {
+    "id": "c237fbc4-ee1f-4719-9b92-8772a959da70",
+    "header": {
+      "publisherId": "NP2-DEV",
+      "name": "INGESTION_COMMAND",
+      "version": "1.0.0",
+      "requestedOn": "2020-10-29T14:50:19.107Z",
+      "replyTo": "defaultReplyTo",
+      "acceptLanguage": "en-US",
+      "contentType": "application/json",
+      "contentSchema": "INGESTION_COMMAND_EVENT",
+      "additionalProperties": {}
+    },
+    "body": "{\"eventType\":\"INGESTION_COMMAND_EVENT\",\"customeridtype\":\"subscriberid\",\"msgid\":\"8450fd5c-a531-4c22-b976-2ad79a92c78a\",\"msgexpirationtime\":\"20400915t155300+0500\",\"msgretentiontime\":\"20400915t155300+0500\",\"sourceid\":\"np2-dev\",\"notificationtypecode\":\"chevrolet\",\"notificationchannel\":\"email\",\"notificationdeviceid\":\"xyz@gm.com\",\"ingestionCommandEventInfo\":{\"excludeNotificationValidation\":\"true\",\"templateValues\":[{\"channelCode\":\"EMAIL\",\"templateID\":\"NP-POC\"},{\"channelCode\":\"SMS_TEXT\",\"templateID\":\"NP-POC\"}],\"contentParamsEncoded\":[{\"key\":\"event_cd\",\"value\":\"V2VsY29tZSBBbGVydA==\"},{\"key\":\"account_id\",\"value\":\"QWNjb3VudDEyMzQ=\"},{\"key\":\"vehicle_model_desc\",\"value\":\"Q2hldnJvbGV0\"},{\"key\":\"vehicle_make_desc\",\"value\":\"TWFsaWJ1\"},{\"key\":\"vehicle_model_year\",\"value\":\"MjAyMQ==\"},{\"key\":\"delivery_log_id\",\"value\":\"SUQyMTI0MzI=\"},{\"key\":\"merchant_name\",\"value\":\"U2hlbGw=\"},{\"key\":\"customer_first_name\",\"value\":\"RGFudGVzd2FyYQ==\"},{\"key\":\"customer_last_name\",\"value\":\"Q2hhbGxh\"}]}}"
+  }
+}
