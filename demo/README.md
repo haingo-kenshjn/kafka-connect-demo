@@ -2,7 +2,7 @@
 Start local posgresql if dont have any connection
 
 ```
-docker-compose -f ./docker-composs-db.yml up
+docker-compose -f ../docker-composs-db.yml up
 ```
 
 Edit kafka broker to company broker, and point to local keyTab file.
