@@ -1,10 +1,8 @@
 package com.gm.demo.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.gm.demo.helpers.CSVHelper;
 import com.gm.demo.models.CustomerData;
 import com.gm.demo.models.ResponseMessage;
-import com.gm.demo.services.CustomerService;
 import com.gm.demo.services.PayloadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +23,6 @@ import java.util.List;
 @Slf4j
 public class CSVController {
 
-    private final CustomerService fileService;
     private final PayloadService payloadConverterService;
 
     @PostMapping("/upload")
@@ -34,7 +31,7 @@ public class CSVController {
 
         if (CSVHelper.hasCSVFormat(file)) {
             try {
-                List<CustomerData> customerData = fileService.save(CSVHelper.csvToCustomerData(file.getInputStream()));
+                List<CustomerData> customerData = CSVHelper.csvToCustomerData(file.getInputStream());
 
                 if(!CollectionUtils.isEmpty(customerData)) {
                     customerData.forEach(payloadConverterService::process);
