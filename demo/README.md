@@ -4,6 +4,7 @@ Start local posgresql if dont have any connection
 ```
 docker-compose -f ../docker-composs-db.yml up
 ```
+Config file: https://github.com/haingo-kenshjn/kafka-connect-demo/blob/master/demo/src/main/resources/application.properties
 
 Edit kafka broker to company broker, and point to local keyTab file.
 
