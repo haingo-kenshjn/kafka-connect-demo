@@ -1,13 +1,8 @@
 
-Build project
-```
-mvn clean install
-```
-
-Run project
+Start local posgresql if dont have any connection
 
 ```
-mvn spring-boot:run
+docker-compose -f ./docker-composs-db.yml up
 ```
 
 Edit kafka broker to company broker, and point to local keyTab file.
@@ -29,4 +24,16 @@ spring.cloud.stream.kafka.binder.jaas.options.keyTab=/etc/security/keytabs/kafka
 
 Uncommnent and edit if kafka have principal user
 #spring.cloud.stream.kafka.binder.jaas.options.principal=kafka-client-1@EXAMPLE.COM
+```
+
+
+Build project
+```
+mvn clean install
+```
+
+Run project
+
+```
+mvn spring-boot:run
 ```
