@@ -112,7 +112,7 @@ public class CSVService {
 
         try {
             // synchronized write to prevent wrong write order data on same file
-            synchronized (this) {
+            synchronized (printer) {
                 printer.printRecord(values);
             }
         } catch (IOException e) {
