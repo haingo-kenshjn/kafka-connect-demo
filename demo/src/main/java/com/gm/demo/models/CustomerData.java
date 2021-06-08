@@ -13,13 +13,10 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CustomerData {
 
-    private UUID uuid;
+    @Builder.Default
+    private String uuid = UUID.randomUUID().toString();
 
     private String vin;
 
     private String customerID;
-
-    public UUID getUuid() {
-        return UUID.randomUUID();
-    }
 }

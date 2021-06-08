@@ -1,8 +1,9 @@
 package com.gm.demo.controller;
 
-import com.gm.demo.helpers.CSVHelper;
+import com.gm.demo.services.CSVService;
 import com.gm.demo.models.CustomerData;
 import com.gm.demo.models.ResponseMessage;
+import com.gm.demo.services.FileProcessService;
 import com.gm.demo.services.PayloadService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,19 +24,16 @@ import java.util.List;
 @Slf4j
 public class CSVController {
 
-    private final PayloadService payloadConverterService;
+    private final FileProcessService fileProcessService;
 
     @PostMapping("/upload")
     public ResponseEntity<ResponseMessage> uploadFile(@RequestParam("file") MultipartFile file) {
         String message = "";
 
-        if (CSVHelper.hasCSVFormat(file)) {
+        if (CSVService.hasCSVFormat(file)) {
             try {
-                List<CustomerData> customerData = CSVHelper.csvToCustomerData(file.getInputStream());
-
-                if(!CollectionUtils.isEmpty(customerData)) {
-                    customerData.forEach(payloadConverterService::process);
-                }
+                String fileName = file.getOriginalFilename();
+                fileProcessService.startProcessFile(fileName, file.getInputStream());
 
                 message = "Uploaded the file successfully: " + file.getOriginalFilename();
                 return ResponseEntity.status(HttpStatus.OK).body(new ResponseMessage(message));

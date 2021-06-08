@@ -1,7 +1,5 @@
 package com.gm.demo.services;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,14 +10,12 @@ import com.github.fge.jackson.JsonLoader;
 import com.gm.demo.models.CustomerData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -40,19 +36,23 @@ public class PayloadService {
         bodyJsonTemplate = (ObjectNode) objectMapper.readTree(objectMapper.readValue(body, JsonNode.class).asText());
     }
 
-    public void process(CustomerData customer) {
+    public boolean process(String fileUrl, CustomerData customer) {
         try {
-            customerStreams.outboundCustomerData()
+            return customerStreams.outboundCustomerData()
                     .send(MessageBuilder
                             .withPayload(this.addCustomerData(customer))
+                            .setHeaderIfAbsent("fileUrl", fileUrl)
+                            .setHeaderIfAbsent("uuid", customer.getUuid())
+                            .setHeaderIfAbsent("VIN", customer.getVin())
+                            .setHeaderIfAbsent("customerID", customer.getCustomerID())
                             .build());
-        } catch (JsonProcessingException e) {
+        } catch (Exception e) {
             log.error(e.getMessage());
-            throw new RuntimeException(e);
+            return false;
         }
     }
 
-    public JsonNode addCustomerData(CustomerData data) throws JsonProcessingException {
+    private JsonNode addCustomerData(CustomerData data) throws JsonProcessingException {
         ObjectNode payload = template.deepCopy();
         ObjectNode bodyJson = bodyJsonTemplate.deepCopy();
 
