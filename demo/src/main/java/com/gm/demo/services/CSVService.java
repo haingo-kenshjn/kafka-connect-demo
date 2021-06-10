@@ -32,6 +32,7 @@ public class CSVService {
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")
             .withZone(ZoneId.from(ZoneOffset.UTC));
 
+    // Redis distributed cache for sharing
     Map<String, CSVPrinter> cachedWriter = new HashMap<>();
 
     public static boolean hasCSVFormat(MultipartFile file) {
@@ -57,6 +58,7 @@ public class CSVService {
                         .customerID(csvRecord.get("customerID"))
                         .build();
                 customerData.add(customer);
+
                 // log.debug("read csv uuid {}", customer.getUuid());
                 processCustomerData.apply(customer);
                 fileProcessStatus.increaseTotal();

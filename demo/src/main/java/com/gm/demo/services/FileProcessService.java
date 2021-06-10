@@ -22,7 +22,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +31,7 @@ public class FileProcessService {
     private final PayloadService payloadService;
     private final ApplicationContext context;
 
+    // Redis distributed cache for sharing
     Map<String, FileProcessStatus> cacheFileUploadStatus = new HashMap<>();
 
     public FileProcessStatus startProcessFile(String fileName, InputStream is) {
@@ -48,19 +48,26 @@ public class FileProcessService {
         return fileProcessStatus;
     }
 
+    /*
+        read cvs-> async process ->  async kafka (fire & forget) -> errorChannel(failed) + consumer(suscess)
+        read csv-> async process -> (sync) kafka (report status) -> report true|false
+     */
     @Async(value = "csvFileProcessExecutor")
     public Void process(FileProcessStatus fileProcessStatus, CustomerData customerData) {
         boolean result = payloadService.process(fileProcessStatus.getFileUrl(), customerData);
 
         if (!result) {
+            // never connect to kafka broker
             updateFileProcessStatus(fileProcessStatus, customerData, false);
         }
 
         return null;
     }
 
+    // connected then timeout again
+    // 30s
     @ServiceActivator(inputChannel = "errorChannel")
-    public void handle(final ErrorMessage em) throws IOException {
+    public void handle(final ErrorMessage em) {
         log.error("Error caught" + em.toString());
 
         if (em.getPayload() instanceof KafkaSendFailureException) {
