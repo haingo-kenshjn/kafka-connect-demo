@@ -10,6 +10,7 @@ import com.github.fge.jackson.JsonLoader;
 import com.gm.demo.models.CustomerData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.stream.messaging.DirectWithAttributesChannel;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
@@ -57,7 +58,7 @@ public class PayloadService {
         ObjectNode bodyJson = bodyJsonTemplate.deepCopy();
 
         bodyJson.put("customerID", data.getCustomerID());
-        bodyJson.put("uuid", data.getUuid().toString());
+        bodyJson.put("uuid", data.getUuid());
 
         ObjectNode vinNode = objectMapper.createObjectNode();
         vinNode.put("key", "VIN");

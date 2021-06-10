@@ -5,6 +5,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.stream.annotation.EnableBinding;
 import org.springframework.context.annotation.Bean;
+import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.messaging.SubscribableChannel;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -27,5 +29,10 @@ public class DemoApplication {
         executor.setThreadNamePrefix("cvs-process");
         executor.initialize();
         return executor;
+    }
+
+    @Bean
+    public SubscribableChannel fileProcessMetadataChannel() {
+        return new PublishSubscribeChannel();
     }
 }

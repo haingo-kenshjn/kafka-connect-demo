@@ -6,7 +6,6 @@ import com.gm.demo.models.FileProcessStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.cloud.stream.annotation.StreamListener;
 import org.springframework.context.ApplicationContext;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.kafka.support.KafkaSendFailureException;
@@ -15,7 +14,7 @@ import org.springframework.messaging.support.ErrorMessage;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
+import javax.annotation.PostConstruct;
 import java.io.InputStream;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -34,6 +33,9 @@ public class FileProcessService {
     // Redis distributed cache for sharing
     Map<String, FileProcessStatus> cacheFileUploadStatus = new HashMap<>();
 
+    /*
+     *   read one by one cvs record -> async process ->  async kafka
+     */
     public FileProcessStatus startProcessFile(String fileName, InputStream is) {
         FileProcessStatus fileProcessStatus = new FileProcessStatus(fileName);
         csvService.createWriter(fileProcessStatus);
@@ -48,47 +50,22 @@ public class FileProcessService {
         return fileProcessStatus;
     }
 
-    /*
-        read cvs-> async process ->  async kafka (fire & forget) -> errorChannel(failed) + consumer(suscess)
-        read csv-> async process -> (sync) kafka (report status) -> report true|false
-     */
     @Async(value = "csvFileProcessExecutor")
     public Void process(FileProcessStatus fileProcessStatus, CustomerData customerData) {
         boolean result = payloadService.process(fileProcessStatus.getFileUrl(), customerData);
 
         if (!result) {
-            // never connect to kafka broker
             updateFileProcessStatus(fileProcessStatus, customerData, false);
         }
 
         return null;
     }
 
-    // connected then timeout again
-    // 30s
-    @ServiceActivator(inputChannel = "errorChannel")
-    public void handle(final ErrorMessage em) {
-        log.error("Error caught" + em.toString());
-
-        if (em.getPayload() instanceof KafkaSendFailureException) {
-            KafkaSendFailureException ex = (KafkaSendFailureException) em.getPayload();
-            String fileUrl = new String(ex.getRecord().headers().headers("fileUrl").iterator().next().value());
-            String uuid = new String(ex.getRecord().headers().headers("uuid").iterator().next().value());
-            String vin = new String(ex.getRecord().headers().headers("VIN").iterator().next().value());
-            String customerID = new String(ex.getRecord().headers().headers("customerID").iterator().next().value());
-
-            CustomerData failed = CustomerData.builder()
-                    .uuid(uuid)
-                    .vin(vin)
-                    .customerID(customerID)
-                    .build();
-
-            FileProcessStatus fileProcessStatus = cacheFileUploadStatus.get(fileUrl);
-            updateFileProcessStatus(fileProcessStatus, failed, false);
-        }
-    }
-
-    @StreamListener(CustomerStreams.INPUT)
+    /**
+     * On async message sent success
+     * @param message
+     */
+    @ServiceActivator(inputChannel = "fileProcessMetadataChannel")
     public void handleMessage(Message message) {
         try {
             if (!message.getHeaders().containsKey("fileUrl")) {
@@ -116,8 +93,34 @@ public class FileProcessService {
         }
     }
 
+    /**
+     * On async message sent error
+     * @param em ErrorMessage
+     */
+    @ServiceActivator(inputChannel = "errorChannel")
+    public void handle(final ErrorMessage em) {
+        log.error("Error caught" + em.toString());
+
+        if (em.getPayload() instanceof KafkaSendFailureException) {
+            KafkaSendFailureException ex = (KafkaSendFailureException) em.getPayload();
+            String fileUrl = new String(ex.getRecord().headers().headers("fileUrl").iterator().next().value());
+            String uuid = new String(ex.getRecord().headers().headers("uuid").iterator().next().value());
+            String vin = new String(ex.getRecord().headers().headers("VIN").iterator().next().value());
+            String customerID = new String(ex.getRecord().headers().headers("customerID").iterator().next().value());
+
+            CustomerData failed = CustomerData.builder()
+                    .uuid(uuid)
+                    .vin(vin)
+                    .customerID(customerID)
+                    .build();
+
+            FileProcessStatus fileProcessStatus = cacheFileUploadStatus.get(fileUrl);
+            updateFileProcessStatus(fileProcessStatus, failed, false);
+        }
+    }
+
     @Nullable
-    private void updateFileProcessStatus(FileProcessStatus fileProcessStatus, CustomerData customerData, boolean result) {
+    public void updateFileProcessStatus(FileProcessStatus fileProcessStatus, CustomerData customerData, boolean result) {
         if (result) {
             csvService.writeCustomerUploadResult(fileProcessStatus, customerData, RecordStatus.SUCCESS);
             fileProcessStatus.increaseSuccess();
